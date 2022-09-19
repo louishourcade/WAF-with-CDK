@@ -5,7 +5,7 @@ from WAF_Stack import WAF
 aws_acccount = "AWS_ACCOUNT"
 region = "AWS_REGION"
 ip_list = ["CIDR_RANGE_1", "CIDR_RANGE_2"]
-geo_list = ["COUNTRy_CODE_1", "COUNTRY_CODE_2"]
+geo_list = ["COUNTRY_CODE_1", "COUNTRY_CODE_2"]
 aws_managed_rules = True
 
 app = cdk.App()

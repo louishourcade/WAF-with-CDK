@@ -55,13 +55,13 @@ software development framework to define your cloud application resources with f
 
 For this deployment, you will need:
 
-* An AWS account in with sufficient permissions to deploy WAF
-* aws-cdk: installed globally npm install -g aws-cdk
+* An AWS account with sufficient permissions to deploy WAF
+* aws-cdk: installed globally (`npm install -g aws-cdk`)
 * git client
 
 #### Clone the repository
 
-Clone the GitHub repository from:
+Clone the GitHub repository on your machine:
 
 ```bash
 git clone https://github.com/louishourcade/WAF-with-CDK
@@ -76,7 +76,7 @@ Edit the `app.py` file with your desired configuration
 aws_acccount = "AWS_ACCOUNT"
 region = "AWS_REGION"
 ip_list = ["CIDR_RANGE_1", "CIDR_RANGE_2"]
-geo_list = ["COUNTRy_CODE_1", "COUNTRY_CODE_2"]
+geo_list = ["COUNTRY_CODE_1", "COUNTRY_CODE_2"]
 aws_managed_rules = True
 ```
 
