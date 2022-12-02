@@ -1,11 +1,18 @@
 import aws_cdk as cdk
-from aws_cdk import (
-    aws_wafv2 as wafv2
-)
+from aws_cdk import aws_wafv2 as wafv2
+
 
 class WAFStack(cdk.Stack):
-
-    def __init__(self, scope: cdk.App, construct_id: str, ip_list: list, geo_list: list, cloudfront_only=False, aws_managed_rules=False, **kwargs) -> None:
+    def __init__(
+        self,
+        scope: cdk.App,
+        construct_id: str,
+        ip_list: list,
+        geo_list: list,
+        cloudfront_only=False,
+        aws_managed_rules=False,
+        **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         if not cloudfront_only:
@@ -17,7 +24,7 @@ class WAFStack(cdk.Stack):
                 description="Regional IP addresses allowed",
                 addresses=ip_list,
                 ip_address_version="IPV4",
-                scope="REGIONAL"
+                scope="REGIONAL",
             )
 
             # Generate regional web ACL
@@ -25,16 +32,16 @@ class WAFStack(cdk.Stack):
                 self,
                 "Web-ACL-ApiGW",
                 default_action=wafv2.CfnWebACL.DefaultActionProperty(allow={}),
-                scope='REGIONAL',
+                scope="REGIONAL",
                 visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                     cloud_watch_metrics_enabled=True,
-                    metric_name='waf-apigw',
+                    metric_name="waf-apigw",
                     sampled_requests_enabled=True,
                 ),
-                rules=self.get_waf_rules(ip_set_regional,geo_list,aws_managed_rules),
+                rules=self.get_waf_rules(ip_set_regional, geo_list, aws_managed_rules),
             )
 
-        if self.region=="us-east-1":
+        if self.region == "us-east-1":
             # Generate global IP set (CloudFront)
             ip_set_cloudfront = wafv2.CfnIPSet(
                 self,
@@ -43,7 +50,7 @@ class WAFStack(cdk.Stack):
                 description="global IP addresses allowed",
                 addresses=ip_list,
                 ip_address_version="IPV4",
-                scope="CLOUDFRONT"
+                scope="CLOUDFRONT",
             )
 
             # Generate global web ACL (CloudFront)
@@ -51,28 +58,28 @@ class WAFStack(cdk.Stack):
                 self,
                 "Web-ACL-Cloudfront",
                 default_action=wafv2.CfnWebACL.DefaultActionProperty(allow={}),
-                scope='CLOUDFRONT',
+                scope="CLOUDFRONT",
                 visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                     cloud_watch_metrics_enabled=True,
-                    metric_name='waf-cloudfront',
+                    metric_name="waf-cloudfront",
                     sampled_requests_enabled=True,
                 ),
-                rules=self.get_waf_rules(ip_set_cloudfront,geo_list,aws_managed_rules),
+                rules=self.get_waf_rules(
+                    ip_set_cloudfront, geo_list, aws_managed_rules
+                ),
             )
 
     @staticmethod
-    def get_waf_rules(ip_set_regional=None,geo_list=None,aws_managed_rules=False):
-        """ Generate WAF rules """
+    def get_waf_rules(ip_set_regional=None, geo_list=None, aws_managed_rules=False):
+        """Generate WAF rules"""
         waf_rules = []
         waf_rules.append(
             wafv2.CfnWebACL.RuleProperty(
-                name='IPMatch',
+                name="IPMatch",
                 statement=wafv2.CfnWebACL.StatementProperty(
                     not_statement=wafv2.CfnWebACL.NotStatementProperty(
                         statement=wafv2.CfnWebACL.StatementProperty(
-                            ip_set_reference_statement= {
-                                "arn" : ip_set_regional.attr_arn
-                            }
+                            ip_set_reference_statement={"arn": ip_set_regional.attr_arn}
                         )
                     )
                 ),
@@ -80,14 +87,14 @@ class WAFStack(cdk.Stack):
                 visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                     sampled_requests_enabled=True,
                     cloud_watch_metrics_enabled=True,
-                    metric_name='IPMatch',
+                    metric_name="IPMatch",
                 ),
                 priority=0,
             )
         )
         waf_rules.append(
             wafv2.CfnWebACL.RuleProperty(
-                name='GeoMatch',
+                name="GeoMatch",
                 statement=wafv2.CfnWebACL.StatementProperty(
                     not_statement=wafv2.CfnWebACL.NotStatementProperty(
                         statement=wafv2.CfnWebACL.StatementProperty(
@@ -101,7 +108,7 @@ class WAFStack(cdk.Stack):
                 visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                     sampled_requests_enabled=True,
                     cloud_watch_metrics_enabled=True,
-                    metric_name='GeoMatch',
+                    metric_name="GeoMatch",
                 ),
                 priority=1,
             )
@@ -109,16 +116,17 @@ class WAFStack(cdk.Stack):
         if aws_managed_rules:
             waf_rules.append(
                 wafv2.CfnWebACL.RuleProperty(
-                    name='AWS-AWSManagedRulesAdminProtectionRuleSet',
+                    name="AWS-AWSManagedRulesAdminProtectionRuleSet",
                     statement=wafv2.CfnWebACL.StatementProperty(
                         managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name='AWS', name='AWSManagedRulesAdminProtectionRuleSet'
+                            vendor_name="AWS",
+                            name="AWSManagedRulesAdminProtectionRuleSet",
                         )
                     ),
                     visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                         sampled_requests_enabled=True,
                         cloud_watch_metrics_enabled=True,
-                        metric_name='AWS-AWSManagedRulesAdminProtectionRuleSet',
+                        metric_name="AWS-AWSManagedRulesAdminProtectionRuleSet",
                     ),
                     priority=2,
                     override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),
@@ -126,16 +134,17 @@ class WAFStack(cdk.Stack):
             )
             waf_rules.append(
                 wafv2.CfnWebACL.RuleProperty(
-                    name='AWS-AWSManagedRulesAmazonIpReputationList',
+                    name="AWS-AWSManagedRulesAmazonIpReputationList",
                     statement=wafv2.CfnWebACL.StatementProperty(
                         managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name='AWS', name='AWSManagedRulesAmazonIpReputationList'
+                            vendor_name="AWS",
+                            name="AWSManagedRulesAmazonIpReputationList",
                         )
                     ),
                     visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                         sampled_requests_enabled=True,
                         cloud_watch_metrics_enabled=True,
-                        metric_name='AWS-AWSManagedRulesAmazonIpReputationList',
+                        metric_name="AWS-AWSManagedRulesAmazonIpReputationList",
                     ),
                     priority=3,
                     override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),
@@ -143,16 +152,16 @@ class WAFStack(cdk.Stack):
             )
             waf_rules.append(
                 wafv2.CfnWebACL.RuleProperty(
-                    name='AWS-AWSManagedRulesCommonRuleSet',
+                    name="AWS-AWSManagedRulesCommonRuleSet",
                     statement=wafv2.CfnWebACL.StatementProperty(
                         managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name='AWS', name='AWSManagedRulesCommonRuleSet'
+                            vendor_name="AWS", name="AWSManagedRulesCommonRuleSet"
                         )
                     ),
                     visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                         sampled_requests_enabled=True,
                         cloud_watch_metrics_enabled=True,
-                        metric_name='AWS-AWSManagedRulesCommonRuleSet',
+                        metric_name="AWS-AWSManagedRulesCommonRuleSet",
                     ),
                     priority=4,
                     override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),
@@ -160,16 +169,17 @@ class WAFStack(cdk.Stack):
             )
             waf_rules.append(
                 wafv2.CfnWebACL.RuleProperty(
-                    name='AWS-AWSManagedRulesKnownBadInputsRuleSet',
+                    name="AWS-AWSManagedRulesKnownBadInputsRuleSet",
                     statement=wafv2.CfnWebACL.StatementProperty(
                         managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name='AWS', name='AWSManagedRulesKnownBadInputsRuleSet'
+                            vendor_name="AWS",
+                            name="AWSManagedRulesKnownBadInputsRuleSet",
                         )
                     ),
                     visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                         sampled_requests_enabled=True,
                         cloud_watch_metrics_enabled=True,
-                        metric_name='AWS-AWSManagedRulesKnownBadInputsRuleSet',
+                        metric_name="AWS-AWSManagedRulesKnownBadInputsRuleSet",
                     ),
                     priority=5,
                     override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),
@@ -177,16 +187,16 @@ class WAFStack(cdk.Stack):
             )
             waf_rules.append(
                 wafv2.CfnWebACL.RuleProperty(
-                    name='AWS-AWSManagedRulesLinuxRuleSet',
+                    name="AWS-AWSManagedRulesLinuxRuleSet",
                     statement=wafv2.CfnWebACL.StatementProperty(
                         managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name='AWS', name='AWSManagedRulesLinuxRuleSet'
+                            vendor_name="AWS", name="AWSManagedRulesLinuxRuleSet"
                         )
                     ),
                     visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                         sampled_requests_enabled=True,
                         cloud_watch_metrics_enabled=True,
-                        metric_name='AWS-AWSManagedRulesLinuxRuleSet',
+                        metric_name="AWS-AWSManagedRulesLinuxRuleSet",
                     ),
                     priority=6,
                     override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),
@@ -194,16 +204,16 @@ class WAFStack(cdk.Stack):
             )
             waf_rules.append(
                 wafv2.CfnWebACL.RuleProperty(
-                    name='AWS-AWSManagedRulesSQLiRuleSet',
+                    name="AWS-AWSManagedRulesSQLiRuleSet",
                     statement=wafv2.CfnWebACL.StatementProperty(
                         managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name='AWS', name='AWSManagedRulesSQLiRuleSet'
+                            vendor_name="AWS", name="AWSManagedRulesSQLiRuleSet"
                         )
                     ),
                     visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
                         sampled_requests_enabled=True,
                         cloud_watch_metrics_enabled=True,
-                        metric_name='AWS-AWSManagedRulesSQLiRuleSet',
+                        metric_name="AWS-AWSManagedRulesSQLiRuleSet",
                     ),
                     priority=7,
                     override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),

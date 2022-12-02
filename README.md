@@ -134,3 +134,5 @@ Confirm the deployment in the terminal, wait until the CloudFormation stack is d
 
 This template only deploys a WAF with a small fraction of all possible rules that you can associate to your WAF to protect your web applications and APIs.
 Have a look at the [AWS WAF documentation](https://docs.aws.amazon.com/waf/latest/developerguide/waf-chapter.html) to build a WAF that meets your needs.
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)

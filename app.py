@@ -10,7 +10,7 @@ aws_managed_rules = True
 
 app = cdk.App()
 
-if region=="us-east-1":
+if region == "us-east-1":
     WAF.WAFStack(
         app,
         "waf-stack",
@@ -18,8 +18,8 @@ if region=="us-east-1":
         ip_list=ip_list,
         geo_list=geo_list,
         aws_managed_rules=aws_managed_rules,
-        tags={"Project": "WAF-Deployment"}
-        )
+        tags={"Project": "WAF-Deployment"},
+    )
 else:
     WAF.WAFStack(
         app,
@@ -28,8 +28,8 @@ else:
         ip_list=ip_list,
         geo_list=geo_list,
         aws_managed_rules=aws_managed_rules,
-        tags={"Project": "WAF-Deployment"}
-        )
+        tags={"Project": "WAF-Deployment"},
+    )
     WAF.WAFStack(
         app,
         "waf-stack-cloudfront",
@@ -38,7 +38,7 @@ else:
         geo_list=geo_list,
         aws_managed_rules=aws_managed_rules,
         cloudfront_only=True,
-        tags={"Project": "WAF-Deployment"}
-        )
+        tags={"Project": "WAF-Deployment"},
+    )
 
 app.synth()
